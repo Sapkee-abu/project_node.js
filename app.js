@@ -1,81 +1,85 @@
 const express = require("express");
-const { MongoClient, ObjectId } = require("mongodb")
+const { MongoClient, ObjectId } = require("mongodb");
+const cors = require("cors");  // นำเข้า cors
 const app = express();
 
-app.use(express.json())
+app.use(cors());  // ใช้ CORS middleware
+
+app.use(express.json());
 let db;
 const client = new MongoClient("mongodb://localhost:27017");
+
 client.connect().then(() => {
-    db = client.db("ecommerce");
+    db = client.db("ecommerce");  // สามารถเปลี่ยนเป็น "school" หรือชื่อฐานข้อมูลที่ต้องการได้
     console.log("MongoDB connected");
 }).catch((err) => {
     console.log("MongoDB unconnect");
 });
 
-
-// ดึงข้อมูลทั้งหมด
-app.get('/product', async (req, res) => {
+// ดึงข้อมูลทั้งหมด (student)
+app.get('/student', async (req, res) => {
     try {
-        const product = await db.collection("project").find().toArray();
-        res.json(product);
+        const students = await db.collection("student").find().toArray();  // เปลี่ยนเป็น collection "student"
+        res.json(students);
     } catch (err) {
-        res.json("error");
+        res.json({ error: "Error fetching students" });
     }
 });
 
-app.get('/product/topping/:topping', async (req, res) => {
+// ค้นหานักศึกษาโดยใช้รหัสนักศึกษา
+app.get('/student/:studentId', async (req, res) => {
     try {
-        const topping = req.params.topping;
-        const product = await db.collection("project").find({
-            "topping": { $in: [{ "name": topping }] }
-        }).toArray();
-        res.json(product);
+        const studentId = req.params.studentId;
+        const student = await db.collection("student").findOne({
+            "studentId": studentId  // ค้นหาด้วย studentId
+        });
+        if (student) {
+            res.json(student);
+        } else {
+            res.status(404).json({ error: "Student not found" });
+        }
     } catch (err) {
-        res.json("error");
+        res.json({ error: "Error fetching student" });
     }
 });
 
+// เพิ่มข้อมูลนักศึกษาใหม่
+app.post('/student', async (req, res) => {
+    try {
+        const { studentId, name } = req.body;  // ค่าที่จะรับมาจากฟอร์ม
+        const newStudent = { studentId, name };
+        const result = await db.collection("student").insertOne(newStudent);
+        res.json(result);
+    } catch (err) {
+        res.json({ error: "Error adding student" });
+    }
+});
 
-// ดึงข้อมูลรายการนั้น
-app.get('/product/:id', async (req, res) => {
+// แก้ไขข้อมูลนักศึกษาตามรหัส
+app.put('/student/:id', async (req, res) => {
     try {
         const id = req.params.id;
-        const product = await db.collection("project").findOne({
-            "_id": new ObjectId(id)
-        });
-        res.json(product);
+        const { name } = req.body;  // รับค่าชื่อใหม่จาก body
+        const result = await db.collection("student").updateOne(
+            { "_id": new ObjectId(id) },
+            { $set: { name } }  // แก้ไขแค่ชื่อ
+        );
+        res.json(result);
     } catch (err) {
-        res.json("error");
+        res.json({ error: "Error updating student" });
     }
 });
 
-// เพิ่มข้อมูลใหม่
-app.post('/product', async (req, res) => {
-    try {
-        const data = req.body;
-        const product = await db.collection("project").insertOne(data);
-        res.json(product);
-    } catch (err) {
-        res.json("error");
-    }
-});
-
-// แก้ไขข้อมูล
-app.put('/product/:id', async (req, res) => {
+// ลบข้อมูลนักศึกษา
+app.delete('/student/:id', async (req, res) => {
     try {
         const id = req.params.id;
-        const data = req.body;
-        const product = await db.collection("project").updateOne({
-            "_id": new ObjectId(id)
-        }, {
-            $set: data
-        });
-        res.json(product);
+        const result = await db.collection("student").deleteOne({ "_id": new ObjectId(id) });
+        res.json(result);
     } catch (err) {
-        res.json("error");
+        res.json({ error: "Error deleting student" });
     }
 });
-
 
 app.listen(3000, () => {
     console.log('Server started: success');

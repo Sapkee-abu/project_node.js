@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management</title>
+    <link rel="stylesheet" href="css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Student Management System</h1>
+
+        <!-- Form to add new student -->
+        <form id="add-form">
+            <input type="text" id="student-id" placeholder="Enter Student ID" required>
+            <input type="text" id="student-name" placeholder="Enter Student Name" required>
+            <button type="submit">Add Student</button>
+        </form>
+
+        <!-- Search form to find student by ID -->
+        <h2>Search Student by ID:</h2>
+        <input type="text" id="search-id" placeholder="Enter Student ID" onchange="searchStudent()">
+
+        <!-- List of students -->
+        <ul id="name-list"></ul>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+
+</html>
